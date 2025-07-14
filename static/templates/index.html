@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Financial Insights Portal</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Link to the external CSS file -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .hidden {
+      display: none;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    .failure {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Financial Insights Portal</h1>
+    <p>Customer Churn &amp; Credit Card Allowance Analysis</p>
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tabs">
+    <button class="tab active" onclick="showTab('loyalty', event)">Bank Loyalty Check</button>
+    <button class="tab" onclick="showTab('allowance', event)">Credit Card Allowance</button>
+  </nav>
+
+  <main>
+    <!-- Bank Loyalty Check Form -->
+    <section id="loyalty" class="form-container">
+      <h2>Bank Loyalty Check</h2>
+      <form id="loyaltyForm" onsubmit="submitLoyalty(event)">
+        <div class="form-group">
+          <label for="customerId">Customer ID:</label>
+          <input type="text" id="customerId" placeholder="Enter Customer ID" required />
+        </div>
+        <div class="form-group">
+          <label for="loyaltyAge">Age:</label>
+          <input type="number" id="loyaltyAge" placeholder="Enter Age" required />
+        </div>
+        <div class="form-group">
+          <label for="loyaltyCreditScore">Credit Score:</label>
+          <input type="number" id="loyaltyCreditScore" placeholder="Enter Credit Score" required />
+        </div>
+        <div class="form-group">
+          <label for="loyaltyTenure">Tenure (years):</label>
+          <input type="number" id="loyaltyTenure" placeholder="Enter Tenure" required />
+        </div>
+        <div class="form-group">
+          <label for="transactionFrequency">Transaction Frequency:</label>
+          <input type="number" id="transactionFrequency" placeholder="Enter Transaction Frequency" required />
+        </div>
+        <div class="form-group">
+          <label for="avgTransactionAmount">Avg Transaction Amount:</label>
+          <input type="number" id="avgTransactionAmount" placeholder="Enter Average Transaction Amount" required />
+        </div>
+        <div class="form-group">
+          <label for="complaintsFiled">Complaints Filed:</label>
+          <input type="number" id="complaintsFiled" placeholder="Enter Number of Complaints Filed" required />
+        </div>
+        <div class="form-group">
+          <label for="customerSatisfaction">Customer Satisfaction (1-10):</label>
+          <input type="number" id="customerSatisfaction" placeholder="Enter Satisfaction Level" min="1" max="10" required />
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="hasLoan" />
+          <label for="hasLoan">Has Loan</label>
+        </div>
+        <div class="form-group">
+          <label for="balance">Balance:</label>
+          <input type="number" id="balance" placeholder="Enter Account Balance" required />
+        </div>
+        <button type="submit" class="submit-btn">Predict Churn</button>
+      </form>
+      <div id="loyaltyResult" class="result"></div>
+    </section>
+
+    <!-- Credit Card Allowance Form -->
+    <section id="allowance" class="form-container hidden">
+      <h2>Credit Card Allowance Checker</h2>
+      <form id="allowanceForm" onsubmit="submitAllowance(event)">
+        <div class="form-group">
+          <label for="allowanceCreditScore">Credit Score:</label>
+          <input type="number" id="allowanceCreditScore" placeholder="Enter Credit Score" required />
+        </div>
+        <div class="form-group">
+          <label for="gender">Gender:</label>
+          <select id="gender" required>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="allowanceAge">Age:</label>
+          <input type="number" id="allowanceAge" placeholder="Enter Age" required />
+        </div>
+        <div class="form-group">
+          <label for="allowanceTenure">Tenure (years):</label>
+          <input type="number" id="allowanceTenure" placeholder="Enter Tenure" required />
+        </div>
+        <div class="form-group">
+          <label for="allowanceBalance">Balance:</label>
+          <input type="number" id="allowanceBalance" placeholder="Enter Balance" required />
+        </div>
+        <div class="form-group">
+          <label for="numOfProducts">Number of Products:</label>
+          <input type="number" id="numOfProducts" placeholder="Enter Number of Products" required />
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="hasCrCard" />
+          <label for="hasCrCard">Has Credit Card</label>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="isActiveMember" />
+          <label for="isActiveMember">Is Active Member</label>
+        </div>
+        <div class="form-group">
+          <label for="estimatedSalary">Estimated Salary:</label>
+          <input type="number" id="estimatedSalary" placeholder="Enter Estimated Salary" required />
+        </div>
+        <button type="submit" class="submit-btn">Predict Allowance</button>
+      </form>
+      <div id="allowanceResult" class="result"></div>
+    </section>
+  </main>
+
+  <script>
+    // Function to switch between tabs
+    function showTab(tabName, event) {
+      // Hide both sections
+      document.getElementById('loyalty').classList.add('hidden');
+      document.getElementById('allowance').classList.add('hidden');
+
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      // Show selected section and mark tab as active
+      document.getElementById(tabName).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Simulated logic for Bank Loyalty (Churn) prediction
+    function submitLoyalty(event) {
+      event.preventDefault();
+      // Retrieve input values
+      const customerId = document.getElementById('customerId').value;
+      const customerSatisfaction = parseFloat(document.getElementById('customerSatisfaction').value);
+      const complaintsFiled = parseFloat(document.getElementById('complaintsFiled').value);
+      const balance = parseFloat(document.getElementById('balance').value);
+
+      if (isNaN(customerSatisfaction) || isNaN(complaintsFiled) || isNaN(balance)) {
+        alert('Please enter valid values for the required fields.');
+        return;
+      }
+
+      const resultDiv = document.getElementById('loyaltyResult');
+      resultDiv.className = 'result';
+
+      // Simulated prediction logic for churn
+      let prediction;
+      if (customerSatisfaction < 5 || complaintsFiled > 3 || balance < 0) {
+        prediction = "High chance of churn.";
+        resultDiv.classList.add('failure');
+      } else {
+        prediction = "Low chance of churn.";
+        resultDiv.classList.add('success');
+      }
+
+      resultDiv.innerHTML = `<strong>Customer ID: ${customerId}</strong><br>Prediction: ${prediction}`;
+      resultDiv.classList.add('visible');
+    }
+
+    // Simulated logic for Credit Card Allowance prediction
+    function submitAllowance(event) {
+      event.preventDefault();
+      // Retrieve input values
+      const creditScore = parseFloat(document.getElementById('allowanceCreditScore').value);
+      const isActiveMember = document.getElementById('isActiveMember').checked;
+      const balance = parseFloat(document.getElementById('allowanceBalance').value);
+      const estimatedSalary = parseFloat(document.getElementById('estimatedSalary').value);
+
+      if (isNaN(creditScore) || isNaN(balance) || isNaN(estimatedSalary)) {
+        alert('Please enter valid values for the required fields.');
+        return;
+      }
+
+      const resultDiv = document.getElementById('allowanceResult');
+      resultDiv.className = 'result';
+
+      // Simulated prediction logic for credit card allowance
+      let prediction;
+      if (creditScore >= 700 && isActiveMember && balance > 0 && estimatedSalary > 30000) {
+        prediction = "Allowance Approved!";
+        resultDiv.classList.add('success');
+      } else {
+        prediction = "Allowance Not Approved.";
+        resultDiv.classList.add('failure');
+      }
+
+      resultDiv.innerHTML = `<strong>Prediction:</strong> ${prediction}`;
+      resultDiv.classList.add('visible');
+    }
+  </script>
+</body>
+</html>
